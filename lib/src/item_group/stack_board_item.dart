@@ -12,22 +12,16 @@ class StackBoardItem {
     this.tapToEdit = false,
   });
 
+  /// key to get size, position
   /// item id
   final int? id;
-
-  /// 子控件
   final Widget child;
-
-  /// 移除回调
   final Future<bool> Function()? onDel;
-
-  /// 外框样式
+  /// Khung
   final CaseStyle? caseStyle;
-
-  /// 点击进行编辑
   final bool tapToEdit;
 
-  /// 对象拷贝
+  /// copy object
   StackBoardItem copyWith({
     int? id,
     Widget? child,
@@ -43,7 +37,7 @@ class StackBoardItem {
         tapToEdit: tapToEdit ?? this.tapToEdit,
       );
 
-  /// 对象比较
+  /// compare object
   bool sameWith(StackBoardItem item) => item.id == id;
 
   @override

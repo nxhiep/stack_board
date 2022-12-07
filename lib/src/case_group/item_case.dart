@@ -39,6 +39,7 @@ class ItemCase extends StatefulWidget {
   const ItemCase({
     Key? key,
     required this.child,
+    this.globalKey,
     this.isCenter = true,
     this.tools,
     this.caseStyle = const CaseStyle(),
@@ -54,7 +55,9 @@ class ItemCase extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ItemCaseState createState() => _ItemCaseState();
+  ItemCaseState createState() => ItemCaseState();
+
+  final GlobalKey? globalKey;
 
   /// 子控件
   final Widget child;
@@ -97,7 +100,7 @@ class ItemCase extends StatefulWidget {
   final bool? Function(OperatState)? onOperatStateChanged;
 }
 
-class _ItemCaseState extends State<ItemCase> with SafeState<ItemCase> {
+class ItemCaseState extends State<ItemCase> with SafeState<ItemCase> {
   /// 基础参数状态
   late SafeValueNotifier<_Config> _config;
 
@@ -310,7 +313,6 @@ class _ItemCaseState extends State<ItemCase> with SafeState<ItemCase> {
 
     //旋转拦截
     if (!(widget.onAngleChanged?.call(angle) ?? true)) return;
-
     _config.value = _config.value.copy(angle: angle);
   }
 
@@ -335,6 +337,7 @@ class _ItemCaseState extends State<ItemCase> with SafeState<ItemCase> {
   @override
   Widget build(BuildContext context) {
     return ExValueBuilder<_Config>(
+      key: widget.globalKey,
       shouldRebuild: (_Config? p, _Config? n) =>
           p?.offset != n?.offset || p?.angle != n?.angle,
       valueListenable: _config,

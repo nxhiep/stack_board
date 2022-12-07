@@ -11,13 +11,23 @@ class DrawingBoardCase extends StatefulWidget {
   const DrawingBoardCase({
     Key? key,
     required this.stackDrawing,
+    this.globalKey,
     this.onDel,
     this.operatState = OperatState.editing,
     this.onTap,
+    this.onAngleChanged, 
+    this.onOffsetChanged,
+     this.onSizeChanged
   }) : super(key: key);
 
   @override
   _DrawingBoardCaseState createState() => _DrawingBoardCaseState();
+
+  final bool? Function(Size size)? onSizeChanged;
+  final bool? Function(Offset offset)? onOffsetChanged;
+  final bool? Function(double offset)? onAngleChanged;
+
+  final GlobalKey? globalKey;
 
   /// 画板配置对象
   final StackDrawing stackDrawing;
@@ -91,6 +101,8 @@ class _DrawingBoardCaseState extends State<DrawingBoardCase>
   @override
   Widget build(BuildContext context) {
     return ItemCase(
+      globalKey: widget.globalKey,
+      key: widget.key,
       isCenter: false,
       canEdit: true,
       onTap: widget.onTap,
@@ -131,9 +143,11 @@ class _DrawingBoardCaseState extends State<DrawingBoardCase>
           _isEditing = false;
           safeSetState(() {});
         }
-
         return;
       },
+      onAngleChanged: widget.onAngleChanged,
+      onOffsetChanged: widget.onOffsetChanged,
+      onSizeChanged: widget.onSizeChanged,
     );
   }
 

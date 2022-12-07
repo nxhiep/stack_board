@@ -13,13 +13,23 @@ class AdaptiveTextCase extends StatefulWidget {
   const AdaptiveTextCase({
     Key? key,
     required this.adaptiveText,
+    this.globalKey,
     this.onDel,
     this.operatState,
     this.onTap,
+    this.onAngleChanged,
+    this.onOffsetChanged, 
+    this.onSizeChanged
   }) : super(key: key);
 
   @override
   _AdaptiveTextCaseState createState() => _AdaptiveTextCaseState();
+
+  final bool? Function(Size size)? onSizeChanged;
+  final bool? Function(Offset offset)? onOffsetChanged;
+  final bool? Function(double offset)? onAngleChanged;
+
+  final GlobalKey? globalKey;
 
   /// 自适应文本对象
   final AdaptiveText adaptiveText;
@@ -61,6 +71,8 @@ class _AdaptiveTextCaseState extends State<AdaptiveTextCase>
   @override
   Widget build(BuildContext context) {
     return ItemCase(
+      globalKey: widget.globalKey,
+      key: widget.key,
       isCenter: false,
       canEdit: true,
       onTap: widget.onTap,
@@ -75,15 +87,16 @@ class _AdaptiveTextCaseState extends State<AdaptiveTextCase>
         } else if (s == OperatState.editing && !_isEditing) {
           safeSetState(() => _isEditing = true);
         }
-
         return;
       },
       onSizeChanged: (Size s) {
         final Size size = _textSize(_text, _style);
         _textFieldWidth = size.width + 8;
-
+        widget.onSizeChanged?.call(size);
         return;
       },
+      onAngleChanged: widget.onAngleChanged,
+      onOffsetChanged: widget.onOffsetChanged,
     );
   }
 

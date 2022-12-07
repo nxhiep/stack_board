@@ -3,6 +3,7 @@ library stack_board;
 import 'package:flutter/material.dart';
 import 'package:flutter_drawing_board/flutter_drawing_board.dart';
 import 'package:stack_board/src/helper/operat_state.dart';
+import 'package:stack_board/stack_board.dart';
 
 import 'case_group/adaptive_text_case.dart';
 import 'case_group/drawing_board_case.dart';
@@ -50,6 +51,10 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
   /// 子控件列表
   late List<StackBoardItem> _children;
 
+  final Map<int, ItemInfo> mapInfo = {};
+
+  final Map<int, GlobalKey<ItemCaseState>> _keys = {};
+
   /// 当前item所用id
   int _lastId = 0;
 
@@ -58,6 +63,7 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
 
   /// 生成唯一Key
   Key _getKey(int? id) => Key('StackBoardItem$id');
+
 
   @override
   void initState() {
@@ -154,10 +160,58 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
     return _child;
   }
 
+  bool onAngleChanged(StackBoardItem item, double value) {
+    final int? id = item.id;
+    if(id != null) {
+      final ItemInfo? info = mapInfo[item.id];
+      if(info != null) {
+        info.rotation = value;
+      } else {
+        mapInfo.putIfAbsent(id, () => ItemInfo(height: 0, width: 0, x: 0, y: 0, id: item.id ?? 0, rotation: value));
+      }
+    }
+    return true;
+  }
+
+  bool onOffsetChanged(StackBoardItem item, Offset value) {
+    final int? id = item.id;
+    if(id != null) {
+      final ItemInfo? info = mapInfo[item.id];
+      if(info != null) {
+        info.x = value.dx;
+        info.y = value.dy;
+      } else {
+        mapInfo.putIfAbsent(id, () => ItemInfo(height: 0, width: 0, x: value.dx, y: value.dy, id: item.id ?? 0, rotation: 0));
+      }
+    }
+    return true;
+  }
+
+  bool onSizeChanged(StackBoardItem item, Size value) {
+    final int? id = item.id;
+    if(id != null) {
+      final ItemInfo? info = mapInfo[item.id];
+      if(info != null) {
+        info.width = value.width;
+        info.height = value.height;
+      } else {
+        mapInfo.putIfAbsent(id, () => ItemInfo(height: value.height, width: value.width, x: 0, y: 0, id: item.id ?? 0, rotation: 0));
+      }
+    }
+    return true;
+  }
+
   /// 构建项
   Widget _buildItem(StackBoardItem item) {
+    final Key key = _getKey(item.id);
+    final GlobalKey<ItemCaseState> _globalKey = GlobalKey<ItemCaseState>();
+    final int? id = item.id;
+    if(id != null) {
+      _keys.putIfAbsent(id, () => _globalKey);
+    }
     Widget child = ItemCase(
-      key: _getKey(item.id),
+      globalKey: _globalKey,
+      key: key,
       child: Container(
         width: 150,
         height: 150,
@@ -169,32 +223,47 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
       onTap: () => _moveItemToTop(item.id),
       caseStyle: item.caseStyle,
       operatState: _operatState,
+      onAngleChanged: (double value) => onAngleChanged(item, value),
+      onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
+      onSizeChanged: (Size size) => onSizeChanged(item, size)
     );
 
     if (item is AdaptiveText) {
       child = AdaptiveTextCase(
-        key: _getKey(item.id),
+        globalKey: _globalKey,
+        key: key,
         adaptiveText: item,
         onDel: () => _onDel(item),
         onTap: () => _moveItemToTop(item.id),
         operatState: _operatState,
+        onAngleChanged: (double value) => onAngleChanged(item, value),
+        onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
+        onSizeChanged: (Size size) => onSizeChanged(item, size)
       );
     } else if (item is StackDrawing) {
       child = DrawingBoardCase(
-        key: _getKey(item.id),
+        globalKey: _globalKey,
+        key: key,
         stackDrawing: item,
         onDel: () => _onDel(item),
         onTap: () => _moveItemToTop(item.id),
         operatState: _operatState,
+        onAngleChanged: (double value) => onAngleChanged(item, value),
+        onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
+        onSizeChanged: (Size size) => onSizeChanged(item, size)
       );
     } else {
       child = ItemCase(
-        key: _getKey(item.id),
+        globalKey: _globalKey,
+        key: key,
         child: item.child,
         onDel: () => _onDel(item),
         onTap: () => _moveItemToTop(item.id),
         caseStyle: item.caseStyle,
         operatState: _operatState,
+        onAngleChanged: (double value) => onAngleChanged(item, value),
+        onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
+        onSizeChanged: (Size size) => onSizeChanged(item, size)
       );
 
       if (widget.customBuilder != null) {
@@ -202,8 +271,15 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
         if (customWidget != null) return child = customWidget;
       }
     }
-
     return child;
+  }
+
+  Map<int, GlobalKey<ItemCaseState>> getGlobalKeys() {
+    return _keys;
+  }
+
+  Map<int, ItemInfo> getMapInfo() {
+    return mapInfo;
   }
 }
 
@@ -248,5 +324,24 @@ class StackBoardController {
   /// 销毁
   void dispose() {
     _stackBoardState = null;
+  }
+
+  List<ItemInfo> getItemInfos() {
+    return _stackBoardState?.mapInfo.values.toList() ?? [];
+  }
+}
+
+class ItemInfo {
+  ItemInfo({ required this.height, required this.width, required this.x, required this.y, required this.id, required this.rotation });
+  int id;
+  double x;
+  double y;
+  double width;
+  double height;
+  double rotation;
+
+  @override
+  String toString() {
+    return "{ id: $id, x: $x, y: $y, width: $width, height: $height, rotation: $rotation }";
   }
 }
