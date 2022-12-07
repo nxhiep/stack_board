@@ -18,15 +18,11 @@ class AdaptiveTextCase extends StatefulWidget {
     this.operatState,
     this.onTap,
     this.onAngleChanged,
-    this.onOffsetChanged, 
-    this.onSizeChanged
   }) : super(key: key);
 
   @override
   _AdaptiveTextCaseState createState() => _AdaptiveTextCaseState();
 
-  final bool? Function(Size size)? onSizeChanged;
-  final bool? Function(Offset offset)? onOffsetChanged;
   final bool? Function(double offset)? onAngleChanged;
 
   final GlobalKey? globalKey;
@@ -92,11 +88,9 @@ class _AdaptiveTextCaseState extends State<AdaptiveTextCase>
       onSizeChanged: (Size s) {
         final Size size = _textSize(_text, _style);
         _textFieldWidth = size.width + 8;
-        widget.onSizeChanged?.call(size);
         return;
       },
       onAngleChanged: widget.onAngleChanged,
-      onOffsetChanged: widget.onOffsetChanged,
     );
   }
 

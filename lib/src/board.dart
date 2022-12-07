@@ -2,16 +2,10 @@ library stack_board;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_drawing_board/flutter_drawing_board.dart';
-import 'package:stack_board/src/helper/operat_state.dart';
 import 'package:stack_board/stack_board.dart';
 
 import 'case_group/adaptive_text_case.dart';
 import 'case_group/drawing_board_case.dart';
-import 'case_group/item_case.dart';
-import 'helper/case_style.dart';
-import 'item_group/adaptive_text.dart';
-import 'item_group/stack_board_item.dart';
-import 'item_group/stack_drawing.dart';
 
 /// 层叠板
 class StackBoard extends StatefulWidget {
@@ -51,19 +45,18 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
   /// 子控件列表
   late List<StackBoardItem> _children;
 
-  final Map<int, ItemInfo> mapInfo = {};
+  final Map<int, ItemInfo> _mapInfo = {};
 
-  final Map<int, GlobalKey<ItemCaseState>> _keys = {};
+  final Map<int, GlobalKey<ItemCaseState>> _mapKey = {};
 
   /// 当前item所用id
   int _lastId = 0;
 
   /// 所有item的操作状态
-  OperatState? _operatState;
+  OperatState? _operaState;
 
   /// 生成唯一Key
   Key _getKey(int? id) => Key('StackBoardItem$id');
-
 
   @override
   void initState() {
@@ -92,6 +85,7 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
 
   /// 移除指定id item
   void _remove(int? id) {
+    _mapInfo.remove(id);
     _children.removeWhere((StackBoardItem b) => b.id == id);
     safeSetState(() {});
   }
@@ -117,10 +111,10 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
 
   /// 取消全部选中
   void _unFocus() {
-    _operatState = OperatState.complate;
+    _operaState = OperatState.complate;
     safeSetState(() {});
     Future<void>.delayed(const Duration(milliseconds: 500), () {
-      _operatState = null;
+      _operaState = null;
       safeSetState(() {});
     });
   }
@@ -163,39 +157,11 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
   bool onAngleChanged(StackBoardItem item, double value) {
     final int? id = item.id;
     if(id != null) {
-      final ItemInfo? info = mapInfo[item.id];
+      final ItemInfo? info = _mapInfo[id];
       if(info != null) {
         info.rotation = value;
       } else {
-        mapInfo.putIfAbsent(id, () => ItemInfo(height: 0, width: 0, x: 0, y: 0, id: item.id ?? 0, rotation: value));
-      }
-    }
-    return true;
-  }
-
-  bool onOffsetChanged(StackBoardItem item, Offset value) {
-    final int? id = item.id;
-    if(id != null) {
-      final ItemInfo? info = mapInfo[item.id];
-      if(info != null) {
-        info.x = value.dx;
-        info.y = value.dy;
-      } else {
-        mapInfo.putIfAbsent(id, () => ItemInfo(height: 0, width: 0, x: value.dx, y: value.dy, id: item.id ?? 0, rotation: 0));
-      }
-    }
-    return true;
-  }
-
-  bool onSizeChanged(StackBoardItem item, Size value) {
-    final int? id = item.id;
-    if(id != null) {
-      final ItemInfo? info = mapInfo[item.id];
-      if(info != null) {
-        info.width = value.width;
-        info.height = value.height;
-      } else {
-        mapInfo.putIfAbsent(id, () => ItemInfo(height: value.height, width: value.width, x: 0, y: 0, id: item.id ?? 0, rotation: 0));
+        _mapInfo.putIfAbsent(id, () => ItemInfo(height: 0, width: 0, x: 0, y: 0, id: id, rotation: value));
       }
     }
     return true;
@@ -207,7 +173,7 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
     final GlobalKey<ItemCaseState> _globalKey = GlobalKey<ItemCaseState>();
     final int? id = item.id;
     if(id != null) {
-      _keys.putIfAbsent(id, () => _globalKey);
+      _mapKey.putIfAbsent(id, () => _globalKey);
     }
     Widget child = ItemCase(
       globalKey: _globalKey,
@@ -217,15 +183,13 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
         height: 150,
         alignment: Alignment.center,
         child: const Text(
-            'unknow item type, please use customBuilder to build it'),
+            'unknown item type, please use customBuilder to build it'),
       ),
       onDel: () => _onDel(item),
       onTap: () => _moveItemToTop(item.id),
       caseStyle: item.caseStyle,
-      operatState: _operatState,
+      operatState: _operaState,
       onAngleChanged: (double value) => onAngleChanged(item, value),
-      onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
-      onSizeChanged: (Size size) => onSizeChanged(item, size)
     );
 
     if (item is AdaptiveText) {
@@ -235,10 +199,8 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
         adaptiveText: item,
         onDel: () => _onDel(item),
         onTap: () => _moveItemToTop(item.id),
-        operatState: _operatState,
+        operatState: _operaState,
         onAngleChanged: (double value) => onAngleChanged(item, value),
-        onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
-        onSizeChanged: (Size size) => onSizeChanged(item, size)
       );
     } else if (item is StackDrawing) {
       child = DrawingBoardCase(
@@ -247,10 +209,8 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
         stackDrawing: item,
         onDel: () => _onDel(item),
         onTap: () => _moveItemToTop(item.id),
-        operatState: _operatState,
+        operatState: _operaState,
         onAngleChanged: (double value) => onAngleChanged(item, value),
-        onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
-        onSizeChanged: (Size size) => onSizeChanged(item, size)
       );
     } else {
       child = ItemCase(
@@ -260,10 +220,8 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
         onDel: () => _onDel(item),
         onTap: () => _moveItemToTop(item.id),
         caseStyle: item.caseStyle,
-        operatState: _operatState,
+        operatState: _operaState,
         onAngleChanged: (double value) => onAngleChanged(item, value),
-        onOffsetChanged: (Offset offset) => onOffsetChanged(item, offset),
-        onSizeChanged: (Size size) => onSizeChanged(item, size)
       );
 
       if (widget.customBuilder != null) {
@@ -274,12 +232,35 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
     return child;
   }
 
-  Map<int, GlobalKey<ItemCaseState>> getGlobalKeys() {
-    return _keys;
-  }
-
   Map<int, ItemInfo> getMapInfo() {
-    return mapInfo;
+    _mapKey.forEach((int id, GlobalKey _globalKey) {
+      Size _size = const Size(0, 0);
+      Offset _offset = const Offset(0, 0);
+      final RenderObject? _obj = _globalKey.currentContext?.findRenderObject();
+      if(_obj != null) {
+        final RenderBox _box = _obj as RenderBox;
+        _offset = _box.localToGlobal(Offset.zero);
+        _size = _box.size;
+      }
+      final ItemInfo? _itemInfo = _mapInfo[id];
+      if(_itemInfo != null) {
+        _itemInfo.width = _size.width;
+        _itemInfo.height = _size.height;
+        _itemInfo.x = _offset.dx;
+        _itemInfo.y = _offset.dy;
+        _mapInfo.putIfAbsent(id, () => _itemInfo);
+      } else {
+        _mapInfo.putIfAbsent(id, () => ItemInfo(
+          id: id, 
+          height: _size.height, 
+          width: _size.width, 
+          x: _offset.dx, 
+          y: _offset.dy, 
+          rotation: 0
+        ));
+      }
+    });
+    return _mapInfo;
   }
 }
 
@@ -327,7 +308,7 @@ class StackBoardController {
   }
 
   List<ItemInfo> getItemInfos() {
-    return _stackBoardState?.mapInfo.values.toList() ?? [];
+    return _stackBoardState?.getMapInfo().values.toList() ?? [];
   }
 }
 

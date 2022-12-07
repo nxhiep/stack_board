@@ -16,15 +16,11 @@ class DrawingBoardCase extends StatefulWidget {
     this.operatState = OperatState.editing,
     this.onTap,
     this.onAngleChanged, 
-    this.onOffsetChanged,
-     this.onSizeChanged
   }) : super(key: key);
 
   @override
   _DrawingBoardCaseState createState() => _DrawingBoardCaseState();
 
-  final bool? Function(Size size)? onSizeChanged;
-  final bool? Function(Offset offset)? onOffsetChanged;
   final bool? Function(double offset)? onAngleChanged;
 
   final GlobalKey? globalKey;
@@ -146,8 +142,6 @@ class _DrawingBoardCaseState extends State<DrawingBoardCase>
         return;
       },
       onAngleChanged: widget.onAngleChanged,
-      onOffsetChanged: widget.onOffsetChanged,
-      onSizeChanged: widget.onSizeChanged,
     );
   }
 
