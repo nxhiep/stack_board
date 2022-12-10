@@ -52,10 +52,17 @@ class ItemCase extends StatefulWidget {
     this.onOffsetChanged,
     this.onAngleChanged,
     this.onTap,
+    this.position,
+    this.rotation,
+    this.size
   }) : super(key: key);
 
   @override
   ItemCaseState createState() => ItemCaseState();
+
+  final Offset? position;
+  final Size? size;
+  final double? rotation;
 
   final GlobalKey? globalKey;
 
@@ -115,7 +122,9 @@ class ItemCaseState extends State<ItemCase> with SafeState<ItemCase> {
     super.initState();
     _operatState = widget.operatState ?? OperatState.idle;
     _config = SafeValueNotifier<_Config>(_Config.def());
-    _config.value.offset = widget.caseStyle?.initOffset;
+    _config.value.offset = widget.position ?? widget.caseStyle?.initOffset;
+    _config.value.angle = widget.rotation;
+    _config.value.size = widget.size;
   }
 
   @override

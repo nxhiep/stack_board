@@ -72,6 +72,7 @@ class _StackBoardState extends State<StackBoard> with SafeState<StackBoard> {
 
   /// 添加一个
   void _add<T extends StackBoardItem>(StackBoardItem item) {
+    print('xxxxxx $item - ${_children.contains(item)}');
     if (_children.contains(item)) throw 'duplicate id';
 
     _children.add(item.copyWith(
